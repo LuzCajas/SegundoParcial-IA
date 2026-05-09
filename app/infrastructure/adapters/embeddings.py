@@ -1,4 +1,4 @@
-"""Adapter para generación de embeddings."""
+﻿"""Adapter para generación de embeddings."""
 import hashlib
 import logging
 from typing import Optional
@@ -70,7 +70,7 @@ class MockEmbeddingsAdapter:
         embeddings = []
         for text in texts:
             seed = int(hashlib.md5(text.encode()).hexdigest()[:8], 16)
-            vec = [(seed >> (i * 8)) & 0xFF / 255.0 for i in range(self._dimensions)]
+            vec = [((seed >> (i * 8)) & 0xFF) / 255.0 for i in range(self._dimensions)]
             norm = sum(x * x for x in vec) ** 0.5
             if norm > 0:
                 vec = [x / norm for x in vec]
