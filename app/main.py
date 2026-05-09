@@ -8,7 +8,7 @@ from typing import Optional
 
 from app.application.use_cases import AskTutorUC, IndexDocumentsUC
 from app.infrastructure.adapters.document_loader import PyMuPDFAdapter
-from app.infrastructure.adapters.embeddings import EmbeddingsAdapter
+from app.infrastructure.adapters.embeddings import EmbeddingsAdapter, MockEmbeddingsAdapter
 from app.infrastructure.adapters.llm import OpenAIAdapter, MockLLMAdapter
 from app.infrastructure.adapters.vector_store import ChromaDBAdapter
 from app.infrastructure.indexer import RAGIndexer
@@ -34,15 +34,17 @@ async def lifespan(app: FastAPI):
         collection_name="tutor_inteligente"
     )
     
+    embeddings = _resolve_embeddings()
+    
     _indexer = RAGIndexer(
         document_loader=PyMuPDFAdapter(chunk_size=512, chunk_overlap=64),
-        embeddings=EmbeddingsAdapter(provider="transformers"),
+        embeddings=embeddings,
         vector_store=_vector_store
     )
     
     _retriever = RAGRetriever(
         vector_store=_vector_store,
-        embeddings=EmbeddingsAdapter(provider="transformers"),
+        embeddings=embeddings,
         llm=MockLLMAdapter(),
         similarity_threshold=0.5
     )
@@ -51,6 +53,17 @@ async def lifespan(app: FastAPI):
     yield
     
     logger.info("Cerrando Tutor Inteligente...")
+
+
+def _resolve_embeddings():
+    """Intenta cargar sentence-transformers; fallback a MockEmbeddingsAdapter."""
+    try:
+        emb = EmbeddingsAdapter(provider="transformers")
+        logger.info("Usando sentence-transformers para embeddings")
+        return emb
+    except Exception:
+        logger.warning("sentence-transformers no disponible, usando MockEmbeddingsAdapter")
+        return MockEmbeddingsAdapter()
 
 
 app = FastAPI(

@@ -6,6 +6,7 @@ from typing import Optional
 from app.domain.entities import DocumentChunk, Query, AnswerResponse
 from app.domain.ports import IVectorStore, ILLMGateway
 from app.infrastructure.adapters.embeddings import EmbeddingsAdapter, MockEmbeddingsAdapter
+from app.infrastructure.adapters.llm import MockLLMAdapter
 
 logger = logging.getLogger(__name__)
 
